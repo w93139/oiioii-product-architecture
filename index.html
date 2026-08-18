@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OiiOii 完整产品架构拆解</title>
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#f2f0ea,#0f1110);--paper:light-dark(#fffef9,#191c19);--ink:light-dark(#1a1d19,#eef1ec);--muted:light-dark(#6c7169,#a8aea6);--line:light-dark(#d6d5cc,#373b37);--confirmed:#23966a;--inferred:#d38418;--suggested:#3d84c5;--unknown:#9670c9;--risk:#d2564c;--accent:#e73591;--accent2:#f06ea7;--blue:#4392d2;--cyan:#27a49c;--orange:#df6b35;--yellow:#c39912;--purple:#8664d5;--shadow:0 12px 30px color-mix(in srgb,#000 9%,transparent)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.63 Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}a{color:inherit}button{font:inherit}header{padding:56px max(22px,calc((100vw - 1380px)/2));background:radial-gradient(circle at 84% -10%,color-mix(in srgb,var(--accent) 37%,transparent),transparent 34%),linear-gradient(135deg,#141714,#1f1420);color:#fff;border-bottom:5px solid var(--accent)}header h1{font-size:clamp(36px,5.4vw,66px);line-height:.98;letter-spacing:-.05em;margin:0 0 18px}header p{font-size:16px;max-width:960px;color:#d9ddd8;margin:0}.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}.pill{border:1px solid #616961;border-radius:999px;padding:5px 10px;font-size:12px}.layout{display:grid;grid-template-columns:250px minmax(0,1fr);max-width:1560px;margin:auto}.side{position:sticky;top:0;height:100vh;overflow:auto;padding:22px 14px;border-right:1px solid var(--line)}.side b{display:block;margin:0 9px 9px}.side a{display:block;text-decoration:none;color:var(--muted);padding:7px 9px;border-radius:7px}.side a:hover{background:var(--paper);color:var(--ink)}main{min-width:0;padding:36px 30px 100px}section{scroll-margin-top:24px;margin-bottom:58px}h2{font-size:25px;line-height:1.25;margin:0 0 16px;padding-bottom:9px;border-bottom:2px solid var(--ink)}h3{font-size:18px;margin:0 0 8px}h4{font-size:14px;margin:14px 0 6px}.lead{color:var(--muted);font-size:15px;max-width:1040px}.legend{display:flex;gap:13px;flex-wrap:wrap;margin:12px 0}.legend span,.grade{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:760}.dot{width:9px;height:9px;border-radius:50%;display:inline-block}.confirmed{--grade:var(--confirmed)}.inferred{--grade:var(--inferred)}.suggested{--grade:var(--suggested)}.unknown{--grade:var(--unknown)}.grade{color:var(--grade)}.panel{border:1px solid var(--line);border-radius:12px;background:var(--paper);padding:15px;box-shadow:var(--shadow)}.panel ul{padding-left:18px;margin:6px 0}.panel li{margin:5px 0}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.grid5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.notice{border-left:4px solid var(--grade);background:color-mix(in srgb,var(--grade) 9%,transparent);padding:9px 11px;margin:9px 0}.evidence{display:inline-block;text-decoration:none;border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin:2px 3px 2px 0;color:var(--suggested);font:760 11px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}.evidence:hover{border-color:var(--suggested)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--paper)}table{border-collapse:collapse;width:100%;min-width:1160px;font-size:12px}th{position:sticky;top:0;z-index:2;background:var(--paper);text-align:left;white-space:nowrap;padding:10px;border-bottom:1px solid var(--line)}td{vertical-align:top;padding:10px;border-bottom:1px solid var(--line);max-width:340px}tr:last-child td{border-bottom:0}.domain{border-top:4px solid var(--grade);background:var(--paper);border-radius:10px;padding:13px}.domain p{color:var(--muted);margin:5px 0}.layer-stack{display:grid;gap:10px}.layer{display:grid;grid-template-columns:170px 1fr;gap:12px;border:1px solid var(--line);border-left:6px solid var(--grade);background:var(--paper);border-radius:11px;padding:13px}.layer>h3{margin:0}.components{display:flex;flex-wrap:wrap;gap:7px}.component{border:1px solid var(--line);border-radius:6px;padding:5px 8px;background:color-mix(in srgb,var(--grade) 6%,transparent)}.flow-table td:first-child{position:sticky;left:0;background:var(--paper);z-index:1;font-weight:800}.ctx-card{border-top:4px solid var(--grade);background:var(--paper);border-radius:10px;padding:13px}.ctx-card dl{display:grid;grid-template-columns:95px 1fr;gap:5px 8px;margin:8px 0}.ctx-card dt{font-weight:760;color:var(--muted)}.ctx-card dd{margin:0}.answer{border-left:4px solid var(--accent);background:var(--paper);border-radius:8px;padding:11px}.answer b{display:block}.codebox{position:relative;border:1px solid var(--line);border-radius:12px;background:light-dark(#171a18,#0a0c0b);color:#e9ece8;overflow:hidden}.codehead{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-bottom:1px solid #394039;color:#aeb6ae}.copy{border:1px solid #566057;background:transparent;color:#eef2ed;border-radius:6px;padding:5px 9px;cursor:pointer}.copy:hover{border-color:var(--accent2)}pre{margin:0;white-space:pre-wrap;overflow:auto;font:12px/1.56 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.codebox pre{padding:14px}.mermaid{background:transparent;color:inherit;text-align:center;white-space:pre}.arch-wrap{position:relative;border:2px solid var(--accent);box-shadow:0 18px 42px color-mix(in srgb,var(--accent) 12%,transparent)}.arch-wrap .codehead{background:color-mix(in srgb,var(--accent) 13%,#111)}.as-is{border-top:4px solid var(--inferred)}.to-be{border-top:4px solid var(--suggested)}.risk{border-left:5px solid var(--risk);background:var(--paper);border-radius:9px;padding:12px}.risk .prio{font:900 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--risk)}.qa{counter-reset:q;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.qa article{border:1px solid var(--line);background:var(--paper);border-radius:9px;padding:12px}.qa article:before{counter-increment:q;content:"Q" counter(q);font:900 18px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--accent)}.qa b{display:block;margin:3px 0}.tiny{font-size:11px;color:var(--muted)}footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted)}
+@media(max-width:1120px){.layout{grid-template-columns:1fr}.side{position:static;height:auto;display:flex;gap:3px;border-right:0;border-bottom:1px solid var(--line)}.side b{display:none}.side a{white-space:nowrap}.grid4,.grid5,.qa{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:30px 17px 80px}}@media(max-width:720px){.grid2,.grid3,.grid4,.grid5,.qa{grid-template-columns:1fr}.layer{grid-template-columns:1fr}.ctx-card dl{grid-template-columns:1fr}.ctx-card dt{margin-top:5px}header{padding:38px 20px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>OiiOii<br>完整产品架构拆解</h1>
+  <p>从用户故事输入、专业 Agent 协作、工具与模型调用，到全局上下文、媒资、状态、计费、安全与基础设施的证据化逆向分析。已确认、合理推断、建议设计与未知项在同一报告中严格分层。</p>
+  <div class="meta"><span class="pill">18 张操作截图</span><span class="pill">7 个可见 Agent 身份/容器</span><span class="pill">9 层架构</span><span class="pill">18 类核心实体</span><span class="pill">只读分析</span><span class="pill">未使用外部第三方猜测</span></div>
+</header>
+<div class="layout">
+<nav class="side"><b>目录</b><a href="#summary">1 执行摘要</a><a href="#evidence">2 证据来源</a><a href="#domains">3 核心功能域</a><a href="#e2e">4 端到端流转</a><a href="#layers">5 产品分层</a><a href="#agt">6 Agent/工具/上下文</a><a href="#context">7 全局上下文</a><a href="#knowledge">8 知识与公共资产</a><a href="#models">9 模型接入</a><a href="#selection">10 底层选型</a><a href="#entities">11 实体与ER图</a><a href="#sequence">12 时序图</a><a href="#panorama">13 全景架构主图</a><a href="#asis">14 As-Is</a><a href="#tobe">15 To-Be</a><a href="#risks">16 风险</a><a href="#trace">17 证据追溯</a><a href="#unknowns">18 未确认问题</a></nav>
+<main>
+
+<section id="summary">
+  <h2>1. 执行摘要</h2>
+  <div class="notice confirmed"><b>一句话架构：</b>OiiOii 是一个以“聊天 + 可视画布”为工作台、由专业 Agent 串行推进、通过用户确认门逐阶段生成剧本—角色—场景—道具—分镜—视频资产的异步创作系统；当前页面已经暴露出状态事实源分裂、最终完成定义不清和资产依赖治理不足。</div>
+  <div class="grid3"><div class="panel"><h3>当前已确认</h3><p>多 Agent 身份、阶段确认、画布资产图、模型选项、分镜视频生成、预览/剪辑/下载入口、任务与错误提示。</p></div><div class="panel"><h3>核心合理推断</h3><p>存在项目上下文、Agent 编排、异步工具调用、模型调用、媒资保存与有向依赖，但后台实现和字段 schema 不可见。</p></div><div class="panel"><h3>关键建议</h3><p>建立统一状态事实源、版本化资产 DAG、质量与完成门、幂等重试、额度冻结、权限隔离和全链路追踪。</p></div></div>
+</section>
+
+<section id="evidence">
+  <h2>2. 证据来源与证据缺口</h2>
+  <div class="legend"><span><i class="dot" style="background:var(--confirmed)"></i>【已确认】</span><span><i class="dot" style="background:var(--inferred)"></i>【合理推断】</span><span><i class="dot" style="background:var(--suggested)"></i>【建议设计】</span><span><i class="dot" style="background:var(--unknown)"></i>【未知】</span></div>
+  <div class="table-wrap"><table><thead><tr><th>证据类别</th><th>可复核内容</th><th>主要证据</th><th>覆盖范围</th><th>缺口</th></tr></thead><tbody>
+    <tr><td>用户操作</td><td>提交故事；满意继续；生成道具；选择分镜/模型策略；修改入口。</td><td><a class="evidence" href="OiiOii-拆解图片汇总/01_需求与项目配置/01-01_S01_初始需求与影片参数.png">S01</a><a class="evidence" href="OiiOii-拆解图片汇总/03_角色设计/03-01_S03_角色图片与满意确认.png">S03</a><a class="evidence" href="OiiOii-拆解图片汇总/07_视频生成/07-01_S06_四个分镜视频生成完成.png">S06</a></td><td><span class="grade confirmed">已确认</span></td><td>无真实中断、余额不足、生成失败操作。</td></tr>
+    <tr><td>聊天记录</td><td>艺术总监规划；剧本/角色/视频满意确认；场景依赖阻断；分镜知识摘要。</td><td>S01–S06、S11、S16–S18</td><td><span class="grade confirmed">已确认</span></td><td>仅静态截面；无法展开所有被遮挡消息。</td></tr>
+    <tr><td>Agent 名称</td><td>Oii Agent、艺术总监、编剧、角色设计师、场景设计师、道具设计师、分镜师。</td><td>S01/S02/S04/S16/S17</td><td><span class="grade confirmed">已确认</span></td><td>Oii Agent 是独立主控还是 UI 容器未知。</td></tr>
+    <tr><td>按钮/表单</td><td>工作流/短片参数、满意/修改、模型/质量/分辨率、先1个/全部、预览/剪辑/下载、取消/确定。</td><td>S01/S02/S03/S05/S07/S08</td><td><span class="grade confirmed">已确认</span></td><td>部分表单值被输入框遮挡。</td></tr>
+    <tr><td>画布资产</td><td>1 剧本、3 角色、1 场景多视图、3 道具、4 分镜/视频卡及有向连线。</td><td>S01/S07/S10</td><td><span class="grade confirmed">已确认</span></td><td>资产 ID、URL、版本和引用 schema 不可见。</td></tr>
+    <tr><td>历史版本</td><td>未发现版本列表；资产侧栏为空。</td><td>S09</td><td><span class="grade confirmed">缺失事实</span></td><td>不能证明后台没有版本，只能确认页面不可见。</td></tr>
+    <tr><td>模型选择</td><td>Seedance 2.0、Pro/Fast、720p/480p、自定义音色条件。</td><td>S05</td><td><span class="grade confirmed">已确认</span></td><td>没有完整模型目录、价格、时长、失败率或路由日志。</td></tr>
+    <tr><td>工具结果</td><td>激活工作流、更新短片参数完成卡；3 图/3 视频结果；任务生成中/无任务。</td><td>S01/S03/S06/S18</td><td><span class="grade confirmed">结果可见</span></td><td>官方函数名、请求/响应、调用 ID 不可见。</td></tr>
+    <tr><td>错误/警告</td><td>场景多视图缺失；音效/BGM等素材未完全生成。</td><td>S04/S08</td><td><span class="grade confirmed">已确认</span></td><td>无模型失败、安全拦截、扣费失败或写入失败实例。</td></tr>
+    <tr><td>计费信息</td><td>右上角显示 1,233 STAR。</td><td>S01–S09</td><td><span class="grade confirmed">余额显示</span></td><td>是否会员、冻结/扣费/退款、调用成本未知。</td></tr>
+    <tr><td>官方资料</td><td>本轮未补充外部资料。</td><td>—</td><td><span class="grade unknown">未使用</span></td><td>模型规格、计费、安全和隐私政策仍待官方资料核验。</td></tr>
+  </tbody></table></div>
+  <div class="notice unknown"><b>文件标注冲突：</b>S12–S15 的文件名/清单描述为“加入与交接”，截图本身却显示后期分镜视频状态；架构结论只使用页面画面，不用文件名补写不存在的事实。</div>
+</section>
+
+<section id="domains">
+  <h2>3. 核心功能域</h2>
+  <div class="grid4">
+    <article class="domain inferred"><h3>账号与权限</h3><p>头像/余额可见；登录、会员、租户与权限体系未知。</p><span class="grade inferred">显示事实 + 架构推断</span></article>
+    <article class="domain confirmed"><h3>项目入口与管理</h3><p>项目标题、分享/更多、发布按钮、工作流激活与短片参数。</p><span class="grade confirmed">已确认</span></article>
+    <article class="domain confirmed"><h3>聊天与 Agent</h3><p>统一聊天、专业身份、计划/思考摘要、确认/修改。</p><span class="grade confirmed">已确认</span></article>
+    <article class="domain confirmed"><h3>剧本管理</h3><p>“我的剧本”卡、查看入口、满意/修改；版本不可见。</p><span class="grade confirmed">已确认</span></article>
+    <article class="domain confirmed"><h3>风格选择</h3><p>输入区可见“3D言情”；如何编译给模型未知。</p><span class="grade confirmed">选择已确认</span></article>
+    <article class="domain confirmed"><h3>角色设计</h3><p>3 个角色主图与提示词修改入口；无 Face ID 证据。</p><span class="grade confirmed">主图已确认</span></article>
+    <article class="domain unknown"><h3>角色库 / Face ID</h3><p>资产入口存在，但角色库、Face ID、复用策略未出现。</p><span class="grade unknown">未知</span></article>
+    <article class="domain confirmed"><h3>场景设计</h3><p>豪华会所私密包间多视图；缺失依赖可阻断。</p><span class="grade confirmed">已确认</span></article>
+    <article class="domain confirmed"><h3>道具设计</h3><p>从剧本关键物形成 3 个道具卡，并交给分镜师。</p><span class="grade confirmed">结果已确认</span></article>
+    <article class="domain confirmed"><h3>分镜设计</h3><p>4 镜头、画面/音效/台词提示词、知识检索与策略选择。</p><span class="grade confirmed">已确认</span></article>
+    <article class="domain confirmed"><h3>视频生成</h3><p>Seedance 2.0；先小样再批量；4 个视频卡。</p><span class="grade confirmed">已确认</span></article>
+    <article class="domain unknown"><h3>音频/台词/音色</h3><p>提示词和自定义音色条件可见；音效/BGM未齐；独立生产链未知。</p><span class="grade unknown">部分可见</span></article>
+    <article class="domain confirmed"><h3>预览与剪辑</h3><p>单镜头播放、编辑、删除；最终预览、去剪辑、下载入口。</p><span class="grade confirmed">入口已确认</span></article>
+    <article class="domain unknown"><h3>历史版本</h3><p>没有版本列表、差异或回退入口证据。</p><span class="grade unknown">未知</span></article>
+    <article class="domain confirmed"><h3>资产库</h3><p>右侧资产页存在但显示“这里还什么都没有”，与画布冲突。</p><span class="grade confirmed">已确认</span></article>
+    <article class="domain confirmed"><h3>分享与发布</h3><p>顶部分享/发布入口可见；实际发布路径未执行。</p><span class="grade confirmed">仅入口</span></article>
+    <article class="domain confirmed"><h3>积分/额度</h3><p>显示 1,233 STAR；估价、冻结、扣费、退款未见。</p><span class="grade confirmed">仅余额显示</span></article>
+    <article class="domain confirmed"><h3>错误与任务状态</h3><p>依赖阻断、素材不完整警告、生成中与“当前无任务”。</p><span class="grade confirmed">已确认</span></article>
+  </div>
+</section>
+
+<section id="e2e">
+  <h2>4. 端到端功能流转表</h2>
+  <p class="lead">五条流在同一张表中对齐：用户交互、Agent 控制、工具调用、全局上下文、媒资。工具名均为功能命名，不是官方函数名。</p>
+  <div class="table-wrap"><table class="flow-table"><thead><tr><th>步骤</th><th>用户交互流</th><th>Agent 控制流</th><th>工具调用流</th><th>数据/全局上下文流</th><th>资产流</th><th>确认/失败分支</th></tr></thead><tbody>
+    <tr><td>1 进入项目</td><td>输入现代言情故事；可选 3D言情。</td><td>艺术总监首次接管；Oii Agent 作为统一容器。</td><td>激活工作流、更新短片参数完成卡。</td><td>写入原始需求、项目/工作流状态、参数草案（字段为推断）。</td><td>暂无创意资产。</td><td>需要确认影片基本信息；失败路径未知。</td></tr>
+    <tr><td>2 剧本</td><td>查看“我的剧本”；满意继续或修改。</td><td>编剧围绕“觉醒”生成 0-1 剧本。</td><td>检索剧本知识（具体调用推断）；生成剧本资产。</td><td>写入 script.current 与确认状态（推断）。</td><td>1 个剧本卡。</td><td>不满意→修改→再确认；版本未知。</td></tr>
+    <tr><td>3 角色</td><td>查看 3 个图片；满意/修改提示词。</td><td>角色设计师读取角色/外貌/风格。</td><td>生成角色主图；更新提示词入口。</td><td>写入角色列表、提示词、主图引用（schema推断）。</td><td>许清和、顾砚、江叙白主图。</td><td>不满意→局部重生（路径入口已确认，执行未演示）。</td></tr>
+    <tr><td>4 场景/道具</td><td>发送“生成道具”。</td><td>场景设计师先检查依赖；缺多视图则阻断。</td><td>检查多视图；补生成场景；提取/生成道具（执行者部分推断）。</td><td>更新 scene.multiview_status；写入 props（推断）。</td><td>1 个 3 图场景卡、3 个道具卡。</td><td>场景缺失→停止→补齐→确认→继续。</td></tr>
+    <tr><td>5 分镜方案</td><td>选择 Seedance 2.0、Pro/Fast、720p/480p；不要分镜图；先1个/全部。</td><td>道具设计师明确邀请分镜师；分镜师提取 4 镜头。</td><td>检索运镜知识（调用形态推断）；生成画面/音效/台词提示词。</td><td>读取上游资产；写 storyboard[1..4] 与模型配置（推断）。</td><td>4 个镜头/提示词卡。</td><td>提示词满意→小样/批量；不满意修改。</td></tr>
+    <tr><td>6 视频小样</td><td>等待镜头1；满意继续或修改。</td><td>分镜师第一次视频执行。</td><td>视频生成。</td><td>写 video[1]、生成状态、确认状态（推断）。</td><td>镜头1视频。</td><td>满意→批量；不满意→修改提示词/重生。</td></tr>
+    <tr><td>7 视频批量</td><td>等待镜头2/3/4；查看“3个视频”。</td><td>分镜师再次执行。</td><td>并行或批量生成 3 视频（并行方式未知）。</td><td>写 video[2..4]；任务状态变“当前无任务”。</td><td>最终画布 4 个视频卡。</td><td>生成失败/余额不足/中断无真实分支证据。</td></tr>
+    <tr><td>8 最终预览</td><td>预览最终视频/去剪辑/下载所有分镜。</td><td>无独立 Agent 身份；最终界面预检。</td><td>预览预检；剪辑/下载仅入口。</td><td>读取视频及音效/BGM完整性。</td><td>视频存在；音效/BGM不完整。</td><td>警告→取消或确定；最终合成未确认。</td></tr>
+    <tr><td>9 状态冲突</td><td>仍看到“满意吗”。</td><td>聊天逻辑仍待确认。</td><td>无工具在运行。</td><td>任务面板“当前无任务”；资产页为空；画布有资产。</td><td>同一项目的资产在不同视图口径不一致。</td><td>建议进入 reconciliation_required，当前产品未见。</td></tr>
+  </tbody></table></div>
+</section>
+
+<section id="layers">
+  <h2>5. 产品分层架构</h2>
+  <div class="layer-stack">
+    <div class="layer confirmed"><h3>1 用户与渠道层</h3><div><div class="components"><span class="component">用户</span><span class="component">中文界面</span><span class="component">1,233 STAR</span><span class="component">资产入口</span><span class="component">发布入口</span><span class="component">分享入口</span></div><p class="tiny">账号、会员、登录、权限、历史项目、偏好、发布渠道实现未知。</p></div></div>
+    <div class="layer confirmed"><h3>2 交互与工作台层</h3><div class="components"><span class="component">聊天</span><span class="component">Agent 身份</span><span class="component">画布</span><span class="component">资产卡</span><span class="component">表单/确认按钮</span><span class="component">任务面板</span><span class="component">预览器</span><span class="component">剪辑入口</span><span class="component">错误弹窗</span><span class="component">资产侧栏</span></div></div>
+    <div class="layer inferred"><h3>3 产品应用层</h3><div><div class="components"><span class="component">项目管理</span><span class="component">剧本管理</span><span class="component">角色管理</span><span class="component">场景管理</span><span class="component">道具管理</span><span class="component">分镜管理</span><span class="component">视频管理</span><span class="component">音频状态</span><span class="component">资产管理</span><span class="component">发布/下载</span></div><p class="tiny">功能域已确认；服务拆分方式为推断。版本管理未确认。</p></div></div>
+    <div class="layer inferred"><h3>4 Agent 与流程编排层</h3><div><div class="components"><span class="component">Oii Agent/主控（身份未知）</span><span class="component">艺术总监</span><span class="component">编剧</span><span class="component">角色设计师</span><span class="component">场景设计师</span><span class="component">道具设计师</span><span class="component">分镜师</span><span class="component">工作流/确认门</span></div><p class="tiny">专业 Agent 已确认；持久状态机、回退、重试、幂等和完成门应补充。</p></div></div>
+    <div class="layer inferred"><h3>5 工具与服务层</h3><div><div class="components"><span class="component">上下文读写</span><span class="component">剧本/实体提取</span><span class="component">提示词生成</span><span class="component">图片生成</span><span class="component">视频生成</span><span class="component">预览/导出</span><span class="component">资产存储</span><span class="component">任务状态</span></div><p class="tiny">音频/语音、安全、余额/计费、合成服务未确认；建议工具层强制执行。</p></div></div>
+    <div class="layer inferred"><h3>6 模型接入与路由层</h3><div><div class="components"><span class="component">文本能力（推断）</span><span class="component">图片能力（推断）</span><span class="component">Seedance 2.0</span><span class="component">Pro/Fast</span><span class="component">720p/480p</span><span class="component">自定义音色条件</span></div><p class="tiny">只有一个视频模型名称被确认；动态模型路由、音频/TTS 模型、成本/失败率不可确认。</p></div></div>
+    <div class="layer inferred"><h3>7 全局上下文与数据层</h3><div class="components"><span class="component">用户上下文</span><span class="component">项目配置</span><span class="component">剧本</span><span class="component">角色/场景/道具</span><span class="component">分镜</span><span class="component">资产引用</span><span class="component">任务/状态</span><span class="component">确认/错误</span><span class="component">计费</span></div></div>
+    <div class="layer inferred"><h3>8 知识与公共资产层</h3><div><div class="components"><span class="component">故事动画剧本知识</span><span class="component">“觉醒”运镜知识</span><span class="component">3D言情风格</span><span class="component">用户资产入口</span><span class="component">模型能力知识（推断）</span></div><p class="tiny">提示词模板、安全/版权/计费规则、公共/私有隔离实现未知。</p></div></div>
+    <div class="layer suggested"><h3>9 基础设施与治理层</h3><div><div class="components"><span class="component">身份认证/租户权限</span><span class="component">结构化数据库</span><span class="component">对象存储/CDN</span><span class="component">队列/异步任务</span><span class="component">模型网关</span><span class="component">日志/追踪</span><span class="component">质量评测</span><span class="component">内容安全</span><span class="component">成本控制</span><span class="component">数据版本</span></div><p class="tiny">均为满足产品能力所需的建议/推断，不是已确认技术栈。</p></div></div>
+  </div>
+</section>
+
+<section id="agt">
+  <h2>6. Agent、工具和全局上下文关系</h2>
+  <div class="table-wrap"><table><thead><tr><th>Agent/容器</th><th>触发</th><th>读取</th><th>判断</th><th>功能性工具</th><th>写入/资产</th><th>交接</th><th>能力边界</th></tr></thead><tbody>
+    <tr><td>Oii Agent</td><td>所有用户输入</td><td>会话/画布/任务（推断）</td><td>专业 Agent 路由（推断）</td><td>维护会话/画布（功能命名）</td><td>任务容器</td><td>全部专业 Agent（推断）</td><td>独立主控身份未知。</td></tr>
+    <tr><td>艺术总监</td><td>首次故事</td><td>原始需求、风格、参数字段</td><td>项目是否可启动、需确认什么</td><td>激活工作流、更新短片参数</td><td>项目/配置状态（推断）</td><td>编剧（推断）</td><td>不生成剧本/图/视频。</td></tr>
+    <tr><td>编剧</td><td>入口配置完成（推断）</td><td>原始需求/项目参数</td><td>0-1 剧本；是否待确认</td><td>检索剧本知识、生成剧本</td><td>我的剧本</td><td>角色设计师（推断）</td><td>不生成角色/视频。</td></tr>
+    <tr><td>角色设计师</td><td>剧本确认（推断）</td><td>剧本人物、外貌、3D言情</td><td>3 主图是否生成并满意</td><td>生成角色主图、更新提示词</td><td>3 角色资产</td><td>场景设计师（推断）</td><td>Face ID/一致性验证未知。</td></tr>
+    <tr><td>场景设计师</td><td>用户“生成道具”</td><td>剧本场景、多视图状态</td><td>依赖是否齐全</td><td>检查/补生成场景多视图</td><td>场景资产与状态</td><td>道具设计师</td><td>口头提取道具计划不等于已执行。</td></tr>
+    <tr><td>道具设计师</td><td>场景补齐（推断）</td><td>剧本、角色、场景</td><td>三类资产是否全部就绪</td><td>提取/生成道具、邀请分镜师</td><td>3 道具资产</td><td>分镜师（明确）</td><td>道具 ID/版本未知。</td></tr>
+    <tr><td>分镜师</td><td>明确邀请；小样满意后重入</td><td>剧本+角色/场景/道具+模型设置</td><td>4 镜头；小样/批量；满意门</td><td>检索运镜知识、提示词、视频生成</td><td>4 分镜/4 视频/状态</td><td>最终界面</td><td>音频/BGM/最终完成不属于已确认能力。</td></tr>
+  </tbody></table></div>
+  <div class="notice inferred"><b>关系结论：</b>画布曲线已确认“上游资产按阶段连接”，但 Agent 读取的是稳定 ID、对象 URL、名称代称还是纯文本提示词，页面无法确认。建议把“聊天消息”“工作流状态”“资产 DAG”分开存储，并由同一项目事件流同步。</div>
+</section>
+
+<section id="context">
+  <h2>7. 全局上下文架构</h2>
+  <p class="lead">以下 Context 名称是架构模板，不等于 OiiOii 当前真实字段名。每个上下文都标明已确认内容和建议补足。</p>
+  <div class="grid3">
+    <article class="ctx-card inferred"><h3>UserContext</h3><dl><dt>已确认</dt><dd>中文界面、余额显示、资产入口、头像。</dd><dt>未知</dt><dd>会员、权限、偏好、历史角色/音色、租户。</dd><dt>建议</dt><dd>user_id、tenant_id、locale、entitlements、private_asset_scope。</dd></dl></article>
+    <article class="ctx-card confirmed"><h3>ProjectConfig</h3><dl><dt>已确认</dt><dd>原始需求、3D言情、影片长度字段、Seedance 2.0、Pro/Fast、720p/480p。</dd><dt>未知</dt><dd>比例/语言实际值、完整参数 schema。</dd><dt>建议</dt><dd>版本化 config + confirmed_by + stale impact。</dd></dl></article>
+    <article class="ctx-card confirmed"><h3>ScriptContext</h3><dl><dt>已确认</dt><dd>“我的剧本”正文卡、满意/修改。</dd><dt>未知</dt><dd>结构化字段、版本、锁定、差异。</dd><dt>建议</dt><dd>script_version、scenes、characters、dialogues、duration_estimate。</dd></dl></article>
+    <article class="ctx-card confirmed"><h3>CharacterContext</h3><dl><dt>已确认</dt><dd>3 角色名与主图、提示词修改入口。</dd><dt>未知</dt><dd>Face ID、多视图、音色、稳定引用。</dd><dt>建议</dt><dd>character_id、asset_version、identity_embedding、voice_ref。</dd></dl></article>
+    <article class="ctx-card confirmed"><h3>SceneContext</h3><dl><dt>已确认</dt><dd>豪华会所私密包间、3 图多视图、缺失阻断。</dd><dt>未知</dt><dd>首次主图、视角 schema、版本。</dd><dt>建议</dt><dd>scene_id、views[]、style_profile_ref、status。</dd></dl></article>
+    <article class="ctx-card confirmed"><h3>PropContext</h3><dl><dt>已确认</dt><dd>3 道具卡、从剧本关键物而来。</dd><dt>未知</dt><dd>精确名称/ID、版本、尺度关系。</dd><dt>建议</dt><dd>prop_id、prompt、main_image_version、scene_bindings。</dd></dl></article>
+    <article class="ctx-card confirmed"><h3>StoryboardContext</h3><dl><dt>已确认</dt><dd>4 镜头；画面/音效/台词提示词；不需要分镜图。</dd><dt>未知</dt><dd>角色/场景/道具的稳定引用。</dd><dt>建议</dt><dd>shot_id、refs、duration、camera、prompt_bundle、stale_status。</dd></dl></article>
+    <article class="ctx-card confirmed"><h3>AssetContext</h3><dl><dt>已确认</dt><dd>画布多类资产和 4 视频；资产侧栏为空。</dd><dt>未知</dt><dd>URI、存储域、版本、哈希、ACL。</dd><dt>建议</dt><dd>asset_id、version_id、mime、producer_run、storage_ref、lineage。</dd></dl></article>
+    <article class="ctx-card confirmed"><h3>WorkflowState</h3><dl><dt>已确认</dt><dd>当前 Agent、生成中、满意门、当前无任务、依赖错误。</dd><dt>问题</dt><dd>聊天/任务/画布状态不一致。</dd><dt>建议</dt><dd>单一状态机、事件序号、确认记录、reconciliation。</dd></dl></article>
+    <article class="ctx-card unknown"><h3>BillingContext</h3><dl><dt>已确认</dt><dd>1,233 STAR 余额显示。</dd><dt>未知</dt><dd>估价、冻结、扣费、退款、重试费用。</dd><dt>建议</dt><dd>estimate、reservation、settlement、refund、idempotency_key。</dd></dl></article>
+    <article class="ctx-card suggested"><h3>EvaluationContext</h3><dl><dt>已确认</dt><dd>用户满意/修改。</dd><dt>缺失</dt><dd>自动质量、时长、风格、音画同步、角色一致性。</dd><dt>建议</dt><dd>check_results、user_feedback、failure_reason、model_metrics。</dd></dl></article>
+    <article class="ctx-card suggested"><h3>KnowledgeBindings</h3><dl><dt>已确认</dt><dd>剧本知识与“觉醒”运镜知识摘要。</dd><dt>未知</dt><dd>知识版本、命中条目、模板 ID。</dd><dt>建议</dt><dd>knowledge_ref、version、retrieval_trace、license_scope。</dd></dl></article>
+  </div>
+</section>
+
+<section id="knowledge">
+  <h2>8. 知识与公共资产架构</h2>
+  <div class="table-wrap"><table><thead><tr><th>类型</th><th>当前证据</th><th>项目数据还是可复用知识</th><th>当前结论</th><th>建议架构</th></tr></thead><tbody>
+    <tr><td>专业知识</td><td>编剧搜索“觉醒”剧本灵感；分镜师检索“觉醒”运镜知识。</td><td>可复用知识</td><td><span class="grade confirmed">公开摘要已确认</span></td><td>版本化知识库；检索结果带 source/version/license。</td></tr>
+    <tr><td>模型能力知识</td><td>Seedance 2.0、Pro/Fast、720p/480p、自定义音色条件。</td><td>可复用知识</td><td><span class="grade inferred">能力表存在为推断</span></td><td>模型能力注册表，包含时长/分辨率/参考图/价格/延迟/安全。</td></tr>
+    <tr><td>风格知识</td><td>3D言情入口。</td><td>平台公共配置 + 项目选择</td><td><span class="grade confirmed">选择已确认</span></td><td>StyleProfile 编译为模型级提示词、色彩、镜头、负面约束。</td></tr>
+    <tr><td>提示词模板</td><td>角色主图提示词、画面/音效/台词提示词结果。</td><td>可复用知识</td><td><span class="grade inferred">模板机制推断</span></td><td>模板版本 + 模型适配层 + 变量 schema。</td></tr>
+    <tr><td>安全/版权规则</td><td>没有艺术创作安全/版权规则结果。</td><td>平台治理知识</td><td><span class="grade unknown">未知</span></td><td>由工具/网关强制，Prompt 只做前置提示，规则不可由 Agent 绕过。</td></tr>
+    <tr><td>计费规则</td><td>只有 STAR 余额显示。</td><td>平台规则</td><td><span class="grade unknown">未知</span></td><td>独立定价/冻结/结算服务，不放在可被 Prompt 修改的逻辑里。</td></tr>
+    <tr><td>用户私有资产</td><td>资产入口；本项目资产；资产页空。</td><td>用户/项目私有数据</td><td><span class="grade unknown">隔离未知</span></td><td>tenant ACL、私有命名空间、显式授权、不可跨用户检索。</td></tr>
+    <tr><td>平台公共资产</td><td>未见角色/场景/道具模板清单。</td><td>公共知识/资产</td><td><span class="grade unknown">未知</span></td><td>公共资产独立命名空间，带授权与来源，引用到项目而非复制身份。</td></tr>
+    <tr><td>项目临时数据</td><td>需求、剧本、角色、场景、道具、分镜、视频、确认状态。</td><td>项目数据</td><td><span class="grade confirmed">已确认</span></td><td>版本化上下文 + 资产 lineage + retention policy。</td></tr>
+    <tr><td>反馈/模型表现</td><td>满意/修改按钮与用户消息。</td><td>项目反馈；是否沉淀未知</td><td><span class="grade confirmed">当前项目反馈已确认</span></td><td>默认只影响项目；用于全局训练/评测必须单独同意并脱敏。</td></tr>
+  </tbody></table></div>
+  <h3 style="margin-top:18px">七个关键问题</h3>
+  <div class="grid4">
+    <div class="answer"><b>1 风格如何可执行？</b>【已确认】用户选 3D言情；【未知】编译方式。建议 StyleProfile → 模型适配器 → 提示词/参数/校验规则。</div>
+    <div class="answer"><b>2 角色如何跨分镜复用？</b>【已确认】角色卡和画布连线；【未知】稳定引用。建议每镜头引用 CharacterAssetVersion/FaceID，而非复制描述。</div>
+    <div class="answer"><b>3 镜头知识来自哪里？</b>【已确认】分镜师公开摘要称检索“觉醒”运镜知识；具体知识库和条目未知。</div>
+    <div class="answer"><b>4 模型能力如何知道？</b>【已确认】UI 展示 Seedance 选项与约束；【合理推断】存在配置；建议能力注册表驱动 UI 与调用校验。</div>
+    <div class="answer"><b>5 安全与计费放哪里？</b>【建议设计】必须由工具/模型网关强制；Agent Prompt 只能辅助，不是唯一防线。</div>
+    <div class="answer"><b>6 用户反馈是否沉淀？</b>【已确认】只看到当前项目确认；【未知】是否学习。建议默认项目级，平台学习需 opt-in。</div>
+    <div class="answer"><b>7 私有/公共如何隔离？</b>【未知】当前实现；建议租户 ACL、对象存储前缀、检索过滤、审计日志与最小授权。</div>
+  </div>
+</section>
+
+<section id="models">
+  <h2>9. 模型接入与路由架构</h2>
+  <div class="table-wrap"><table><thead><tr><th>模型能力</th><th>当前页面证据</th><th>可确认结论</th><th>合理架构推断</th><th>建议路由维度</th><th>不可确认</th></tr></thead><tbody>
+    <tr><td>文本/Agent 模型</td><td>自然语言规划、剧本、实体提取、提示词。</td><td>存在文本生成能力。</td><td>专业 Agent 可能共享或分别配置文本模型。</td><td>任务类型、上下文长度、结构化输出、成本、延迟、质量。</td><td>厂商、模型名、动态路由。</td></tr>
+    <tr><td>图片模型</td><td>角色主图、场景多视图、道具图。</td><td>存在图片生成能力。</td><td>工具层接入图片模型并写入资产服务。</td><td>参考图、多视图、一致性、分辨率、风格、成本、安全。</td><td>模型名、种子、重试。</td></tr>
+    <tr><td>视频模型</td><td>Seedance 2.0；Pro/Fast；720p/480p；4 视频。</td><td>至少一个视频模型/产品档位。</td><td>UI 配置传给视频生成工具。</td><td>画质/速度/成本、时长、参考图、音频支持、失败率。</td><td>是否还有其他模型；真正动态路由。</td></tr>
+    <tr><td>音频/语音/TTS</td><td>音效/台词提示词；自定义音色条件；最终音效/BGM不完整。</td><td>产品考虑音频能力，但完成链不明。</td><td>可能由视频模型或独立工具产生。</td><td>语言、角色音色、时长、版权、同步、费用。</td><td>模型名、生产者、音色资产。</td></tr>
+    <tr><td>能力注册表</td><td>条件提示“自定义音色，仅在选择 Seedance 2.0 时生效”。</td><td>UI 有能力约束。</td><td>可能存在模型配置表。</td><td>能力、限制、价格、健康度、版本、弃用日期。</td><td>真实实现与更新机制。</td></tr>
+    <tr><td>模型网关/重试</td><td>无调用日志；无模型失败实例。</td><td>不能确认。</td><td>多模态工具需要统一接入层。</td><td>幂等、超时、熔断、回退、审核、计费、trace_id。</td><td>当前是否存在。</td></tr>
+  </tbody></table></div>
+  <div class="notice unknown"><b>边界：</b>页面只出现一个视频模型名称，不能据此声称 OiiOii 已具备完整的多模型动态路由。主架构把“能力注册表/模型网关”标为合理推断或建议设计。</div>
+</section>
+
+<section id="selection">
+  <h2>10. 底层架构选型表</h2>
+  <p class="lead">不猜厂商和语言；“可能选型”只描述类别或常见实现路径。</p>
+  <div class="table-wrap"><table><thead><tr><th>能力域</th><th>必须具备的能力</th><th>可能选型</th><th>推荐方案</th><th>证据级别</th><th>不能确认原因</th></tr></thead><tbody>
+    <tr><td>聊天/画布前端</td><td>流式聊天、节点图、卡片、表单、任务/错误、媒体预览。</td><td>现代 Web SPA + 图编辑/画布库 + 流式协议。</td><td>统一 project_version 与 event_seq 驱动聊天/画布/侧栏读模型。</td><td><span class="grade confirmed">交互已确认</span></td><td>框架与协议不可见。</td></tr>
+    <tr><td>Agent 编排</td><td>角色路由、上下文装配、确认门、交接。</td><td>自定义编排器、图式 Agent Workflow。</td><td>显式 AgentRun/Task 状态机，Prompt 不承担 durable state。</td><td><span class="grade inferred">合理推断</span></td><td>后台不可见。</td></tr>
+    <tr><td>工作流/状态机</td><td>长任务恢复、阻断、确认、重试、中断、回退。</td><td>持久工作流引擎或数据库状态机。</td><td>事件溯源 + durable workflow + reconciliation。</td><td><span class="grade suggested">建议设计</span></td><td>当前状态冲突说明实现不足或读模型不同步。</td></tr>
+    <tr><td>异步任务</td><td>图片/视频长耗时生成、进度、取消、晚到结果。</td><td>任务队列 + worker + 事件总线。</td><td>job_id、attempt、idempotency_key、cancel_token、heartbeat。</td><td><span class="grade inferred">行为支持</span></td><td>具体队列未知。</td></tr>
+    <tr><td>模型网关</td><td>统一请求、路由、限流、超时、安全、成本、追踪。</td><td>内部 API 网关/适配器层。</td><td>能力注册表驱动路由；所有调用带 trace_id 和 billing_reservation。</td><td><span class="grade suggested">建议设计</span></td><td>只见 UI 模型选择。</td></tr>
+    <tr><td>工具调用</td><td>schema 校验、权限、幂等、结果写入。</td><td>内部工具 RPC/HTTP/任务命令。</td><td>ToolCall 作为一等实体；成功必须伴随状态/资产事务或补偿。</td><td><span class="grade inferred">结果可见</span></td><td>官方工具名/协议未知。</td></tr>
+    <tr><td>全局上下文存储</td><td>版本化项目图、引用、确认、状态。</td><td>关系数据库 + JSON 文档 + 读模型。</td><td>结构化主数据 + 事件日志 + 缓存；避免单个“大上下文 blob”。</td><td><span class="grade suggested">建议设计</span></td><td>前端只显示结果。</td></tr>
+    <tr><td>结构化业务数据</td><td>用户/项目/任务/确认/计费的事务一致性。</td><td>ACID 关系数据库。</td><td>单一事实源；状态变更带乐观锁/version。</td><td><span class="grade suggested">建议设计</span></td><td>数据库未知。</td></tr>
+    <tr><td>媒资存储/CDN</td><td>大文件、多版本、缩略图、播放、下载、权限。</td><td>对象存储 + CDN + 媒体处理。</td><td>内容寻址/哈希、签名访问、版本 metadata、生命周期。</td><td><span class="grade inferred">媒资行为支持</span></td><td>厂商/部署未知。</td></tr>
+    <tr><td>资产版本管理</td><td>新版本、差异、回退、lineage、stale。</td><td>不可变 AssetVersion + 依赖 DAG。</td><td>永不覆盖已确认版本；修改触发局部失效/重算计划。</td><td><span class="grade suggested">建议设计</span></td><td>页面历史为空。</td></tr>
+    <tr><td>用户确认/中断</td><td>结构化确认、暂停、取消、晚到结果处理。</td><td>Workflow command + confirmation record。</td><td>确认与状态写入事务化；中断写 cancel_requested。</td><td><span class="grade suggested">建议设计</span></td><td>只见按钮，无协议。</td></tr>
+    <tr><td>计费与额度冻结</td><td>预估、冻结、结算、退款、重复请求去重。</td><td>独立账本/额度服务。</td><td>生成前 reserve，成功 settle，失败 release/refund，按 ToolCall 幂等。</td><td><span class="grade suggested">建议设计</span></td><td>仅余额显示。</td></tr>
+    <tr><td>内容安全</td><td>输入/输出审核、策略版本、申诉、审计。</td><td>安全策略引擎 + 模型审核。</td><td>网关强制；Agent 不可绕过；记录 policy_version 与 evidence。</td><td><span class="grade suggested">建议设计</span></td><td>无拦截证据。</td></tr>
+    <tr><td>日志/链路追踪</td><td>用户动作→AgentRun→ToolCall→ModelInvocation→Asset。</td><td>结构化日志 + 分布式追踪 + 指标。</td><td>贯穿 trace_id/project_version；支持对账和复现。</td><td><span class="grade suggested">建议设计</span></td><td>页面无日志。</td></tr>
+    <tr><td>模型效果评测</td><td>角色一致性、风格、时长、台词、同步、用户反馈。</td><td>自动评测 + 抽检 + 人工反馈。</td><td>EvaluationContext 作为完成门；模型/模板版本回流。</td><td><span class="grade suggested">建议设计</span></td><td>仅满意按钮。</td></tr>
+    <tr><td>知识检索</td><td>检索剧本/镜头知识，版本和来源可追溯。</td><td>全文/向量/混合检索。</td><td>知识条目带版本、许可、适用模型；记录 retrieval trace。</td><td><span class="grade inferred">检索摘要已确认</span></td><td>索引/数据库未知。</td></tr>
+    <tr><td>权限/租户隔离</td><td>项目/媒资/FaceID/音色最小权限和审计。</td><td>RBAC/ABAC + tenant-scoped storage。</td><td>所有检索、对象访问和 ToolCall 强制 tenant_id。</td><td><span class="grade suggested">建议设计</span></td><td>登录/权限 UI 未见。</td></tr>
+  </tbody></table></div>
+</section>
+
+<section id="entities">
+  <h2>11. 数据实体表和 ER 图</h2>
+  <p class="lead">实体名是分析模板，不代表 OiiOii 真实表名。</p>
+  <div class="table-wrap"><table><thead><tr><th>实体</th><th>职责</th><th>关键字段示例（推导设计）</th><th>页面证据</th><th>关系结论</th></tr></thead><tbody>
+    <tr><td>User</td><td>用户/租户主体</td><td>user_id、locale、entitlements</td><td>头像、中文 UI、STAR</td><td><span class="grade inferred">实体推断</span></td></tr>
+    <tr><td>Project</td><td>一次创作项目</td><td>project_id、title、config_version、status</td><td>项目标题、工作流、画布</td><td><span class="grade confirmed">概念已确认</span></td></tr>
+    <tr><td>Conversation</td><td>聊天消息容器</td><td>conversation_id、messages、agent_identity</td><td>统一聊天区</td><td><span class="grade confirmed">已确认</span></td></tr>
+    <tr><td>Agent</td><td>专业角色定义</td><td>agent_id、name、capabilities</td><td>7 个名称/容器</td><td><span class="grade confirmed">身份已确认</span></td></tr>
+    <tr><td>AgentRun</td><td>一次 Agent 执行</td><td>run_id、state、input_version、trace_id</td><td>规划/思考/生成状态</td><td><span class="grade inferred">实体推断</span></td></tr>
+    <tr><td>Workflow</td><td>阶段顺序与状态机</td><td>workflow_id、current_stage、event_seq</td><td>激活工作流、画布链路</td><td><span class="grade inferred">合理推断</span></td></tr>
+    <tr><td>Task</td><td>长耗时任务</td><td>task_id、status、attempt、cancel_requested</td><td>任务列表、生成中/无任务</td><td><span class="grade confirmed">概念已确认</span></td></tr>
+    <tr><td>ToolCall</td><td>工具请求/结果</td><td>tool_call_id、tool_type、idempotency_key、result</td><td>完成卡/资产结果</td><td><span class="grade inferred">实体推断</span></td></tr>
+    <tr><td>Script</td><td>剧本版本</td><td>script_id、version、body、status</td><td>“我的剧本”</td><td><span class="grade confirmed">资产已确认</span></td></tr>
+    <tr><td>Character</td><td>角色主数据</td><td>character_id、name、prompt、identity_ref</td><td>3 角色卡</td><td><span class="grade confirmed">已确认</span></td></tr>
+    <tr><td>Scene</td><td>场景主数据</td><td>scene_id、description、multiview_status</td><td>豪华包间多视图</td><td><span class="grade confirmed">已确认</span></td></tr>
+    <tr><td>Prop</td><td>道具主数据</td><td>prop_id、description、scene_bindings</td><td>3 道具卡</td><td><span class="grade confirmed">已确认</span></td></tr>
+    <tr><td>Storyboard</td><td>镜头与提示词</td><td>shot_id、refs、prompt_bundle、duration</td><td>4 镜头卡</td><td><span class="grade confirmed">已确认</span></td></tr>
+    <tr><td>Asset</td><td>逻辑媒资</td><td>asset_id、type、owner_scope、current_version</td><td>图片/视频卡</td><td><span class="grade confirmed">概念已确认</span></td></tr>
+    <tr><td>AssetVersion</td><td>不可变媒资版本</td><td>version_id、storage_ref、hash、producer_run</td><td>无版本 UI</td><td><span class="grade suggested">建议实体</span></td></tr>
+    <tr><td>UserConfirmation</td><td>结构化确认</td><td>confirmation_id、stage、version、action</td><td>满意/修改按钮</td><td><span class="grade inferred">实体推断</span></td></tr>
+    <tr><td>ModelInvocation</td><td>模型请求/响应</td><td>invocation_id、model、params、usage、latency</td><td>Seedance 选项+视频结果</td><td><span class="grade inferred">实体推断</span></td></tr>
+    <tr><td>Error</td><td>错误/警告</td><td>error_id、category、retryable、source</td><td>多视图缺失、素材不完整</td><td><span class="grade confirmed">概念已确认</span></td></tr>
+    <tr><td>BillingRecord</td><td>额度账本</td><td>record_id、estimate、reserve、settle、refund</td><td>仅余额</td><td><span class="grade suggested">建议实体</span></td></tr>
+    <tr><td>Feedback</td><td>用户/自动评测</td><td>feedback_id、target_version、rating、reason</td><td>满意/修改</td><td><span class="grade inferred">实体推断</span></td></tr>
+  </tbody></table></div>
+  <h3 style="margin-top:18px">Mermaid ER 图</h3>
+  <div class="codebox"><div class="codehead"><span>实体关系（模板名称）</span><button class="copy" data-copy="er-src">复制 Mermaid</button></div><pre id="er-src" class="mermaid">erDiagram
+    USER ||--o{ PROJECT : owns
+    PROJECT ||--o{ CONVERSATION : has
+    PROJECT ||--|| WORKFLOW : runs
+    WORKFLOW ||--o{ TASK : schedules
+    AGENT ||--o{ AGENT_RUN : executes
+    WORKFLOW ||--o{ AGENT_RUN : orchestrates
+    AGENT_RUN ||--o{ TOOL_CALL : invokes
+    TOOL_CALL ||--o{ MODEL_INVOCATION : may_create
+    PROJECT ||--o{ SCRIPT : versions
+    PROJECT ||--o{ CHARACTER : contains
+    PROJECT ||--o{ SCENE : contains
+    PROJECT ||--o{ PROP : contains
+    PROJECT ||--o{ STORYBOARD : contains
+    STORYBOARD }o--o{ CHARACTER : references
+    STORYBOARD }o--o{ SCENE : references
+    STORYBOARD }o--o{ PROP : references
+    SCRIPT ||--o{ STORYBOARD : decomposes_into
+    PROJECT ||--o{ ASSET : owns
+    ASSET ||--|{ ASSET_VERSION : versions
+    AGENT_RUN ||--o{ ASSET_VERSION : produces
+    STORYBOARD ||--o{ ASSET_VERSION : renders_to
+    PROJECT ||--o{ USER_CONFIRMATION : records
+    USER_CONFIRMATION }o--|| ASSET_VERSION : confirms
+    TASK ||--o{ ERROR : reports
+    TOOL_CALL ||--o{ ERROR : reports
+    MODEL_INVOCATION ||--o{ BILLING_RECORD : settles
+    PROJECT ||--o{ FEEDBACK : collects
+    FEEDBACK }o--|| ASSET_VERSION : evaluates</pre></div>
+  <div class="notice inferred"><b>关键关系：</b>Project→剧本/角色/场景/道具/分镜/资产由画布支持；Storyboard 对三类资产的稳定多对多引用、AgentRun/ToolCall/ModelInvocation、AssetVersion、账本和反馈实体属于架构推导/建议。</div>
+</section>
+
+<section id="sequence">
+  <h2>12. 端到端时序图</h2>
+  <p class="lead">场景：用户提交完整剧本并附带角色参考图。参考图上传是输入框能力，但本次记录没有真实上传；相应步骤在图中标为推断/建议。</p>
+  <div class="codebox"><div class="codehead"><span>sequenceDiagram</span><button class="copy" data-copy="seq-src">复制 Mermaid</button></div><pre id="seq-src" class="mermaid">sequenceDiagram
+    autonumber
+    actor U as 用户
+    participant W as 聊天/画布工作台
+    participant O as 主控Agent（推断）
+    participant A as 专业Agent
+    participant WF as 工作流与状态服务（推断）
+    participant C as 全局上下文（推断）
+    participant T as 工具服务（推断）
+    participant SB as 安全与计费服务（建议）
+    participant MG as 模型网关（推断）
+    participant AS as 资产服务（推断）
+
+    U->>W: 提交完整剧本 + 角色参考图 + 风格/规格
+    W->>O: 创建/恢复项目会话（推断）
+    O->>WF: 激活工作流（页面有完成卡）
+    O->>C: 写入原始输入与参数草案（推断）
+    WF-->>W: 展示参数确认表
+    W-->>U: 请求明确确认
+
+    alt 用户修改参数
+        U->>W: 修改影片长度/比例/语言/风格
+        W->>C: 写新配置版本（建议）
+        C->>WF: 标记受影响下游资产 stale（建议）
+    else 用户确认
+        U->>W: 确认并继续
+        W->>WF: 记录 UserConfirmation（推断）
+    end
+
+    WF->>O: 触发艺术总监/编剧交接（推断）
+    O->>A: 分派编剧/角色设计师任务
+    A->>C: 读取剧本、风格、参考图（推断）
+    A->>T: 构建角色提示词/生成请求（推断）
+    T->>SB: 安全检查 + 额度预估/冻结（建议）
+
+    alt 安全拦截或余额不足
+        SB-->>T: 拒绝 + 可复核原因
+        T-->>WF: failed，不生成资产
+        WF-->>W: 显示错误与可恢复动作
+    else 允许生成
+        SB-->>T: reservation_id（建议）
+        T->>MG: 图片生成请求（推断）
+        MG-->>T: 异步 job_id
+        T-->>WF: executing + progress
+        WF-->>W: 展示生成中
+        MG-->>T: 图片结果
+        T->>AS: 保存角色 AssetVersion（建议）
+        AS-->>T: asset_ref
+        T->>C: 写入角色资产引用（推断）
+        T->>SB: 结算/释放额度（建议）
+        WF-->>W: 展示角色卡并等待确认
+    end
+
+    alt 用户要求局部修改
+        U->>W: 修改某角色提示词
+        W->>WF: 创建新版本任务
+        WF->>C: 仅角色及其下游分镜/视频标记 stale（建议）
+        WF->>A: 重新触发角色设计师
+    else 用户满意
+        U->>W: 满意并继续
+        W->>WF: 写确认记录
+        WF->>A: 交接场景→道具→分镜
+    end
+
+    A->>C: 读取已确认剧本/角色/场景/道具
+    A->>T: 生成分镜提示词
+    T->>MG: Seedance 2.0 视频生成（模型选择已确认）
+    MG-->>T: 异步视频任务
+
+    alt 用户中断
+        U->>W: 中断
+        W->>WF: cancel_requested（建议）
+        WF->>T: 停止新调用/取消任务（建议）
+        T-->>C: 晚到结果仅登记，不自动采用（建议）
+    else 生成失败
+        MG-->>T: 失败
+        T-->>WF: 分类错误 + retryable
+        WF->>T: 同幂等键重试≤策略次数（建议）
+    else 生成成功
+        MG-->>T: 视频结果
+        T->>AS: 保存视频版本
+        AS-->>C: 写入资产引用
+        WF-->>W: 展示 4 视频 + 满意/修改
+    end
+
+    W->>WF: 请求最终预览
+    WF->>C: 读取视频/音效/BGM完整性
+    alt 素材不完整（页面已确认）
+        WF-->>W: 警告“素材未完全生成”
+    else 完成门通过（建议）
+        WF->>T: 合成/预览/导出
+        T->>AS: 保存最终成片
+        WF-->>W: completed + 可预览/下载
+    end</pre></div>
+</section>
+
+<section id="panorama">
+  <h2>13. 产品全景架构主图</h2>
+  <div class="legend"><span><i class="dot" style="background:var(--confirmed)"></i>实线：已确认</span><span><i class="dot" style="background:var(--inferred)"></i>虚线：合理推断</span><span><i class="dot" style="background:var(--suggested)"></i>粗线：建议设计</span><span><i class="dot" style="background:var(--risk)"></i>红色节点：当前问题</span></div>
+  <div class="codebox arch-wrap"><div class="codehead"><span>OiiOii 分层全景架构</span><button class="copy" data-copy="arch-src">复制 Mermaid</button></div><pre id="arch-src" class="mermaid">flowchart TB
+    classDef confirmed fill:#153f31,stroke:#39bd88,color:#fff
+    classDef inferred fill:#493316,stroke:#dfa044,color:#fff
+    classDef suggested fill:#173952,stroke:#55a5e5,color:#fff
+    classDef unknown fill:#38294a,stroke:#a487d0,color:#fff
+    classDef risk fill:#4a211f,stroke:#ed6c61,color:#fff,stroke-width:2px
+
+    subgraph L1[1 用户与渠道层]
+      U[用户]:::confirmed
+      ACCT[账号/权限/会员<br/>实现未知]:::unknown
+      BAL[1,233 STAR]:::confirmed
+      PUB[分享/发布入口]:::confirmed
+      UAS[用户私有资产]:::unknown
+    end
+
+    subgraph L2[2 交互与工作台层]
+      CHAT[聊天 + Agent 身份]:::confirmed
+      FORM[参数/确认/修改]:::confirmed
+      CANVAS[画布 + 资产卡 + 连线]:::confirmed
+      TASKUI[任务面板]:::confirmed
+      PREVIEW[预览/剪辑/下载]:::confirmed
+      ASSETPANEL[资产侧栏为空]:::risk
+      WARN[依赖/素材警告]:::confirmed
+    end
+
+    subgraph L3[3 产品应用层]
+      PROJECT[项目/配置管理]:::inferred
+      SCRIPTAPP[剧本管理]:::confirmed
+      CHARAPP[角色管理]:::confirmed
+      SCENEAPP[场景管理]:::confirmed
+      PROPAPP[道具管理]:::confirmed
+      STORYAPP[分镜管理]:::confirmed
+      VIDEOAPP[视频管理]:::confirmed
+      AUDIOAPP[音频/BGM管理]:::unknown
+      ASSETAPP[资产管理]:::inferred
+      VERSIONAPP[版本/依赖失效]:::suggested
+      PUBLISHAPP[预览/发布管理]:::inferred
+    end
+
+    subgraph L4[4 Agent 与流程编排层]
+      MASTER[Oii Agent / 主控<br/>身份未知]:::inferred
+      AD[艺术总监]:::confirmed
+      WR[编剧]:::confirmed
+      CD[角色设计师]:::confirmed
+      SD[场景设计师]:::confirmed
+      PD[道具设计师]:::confirmed
+      ST[分镜师]:::confirmed
+      WF[持久工作流/状态机]:::inferred
+      CONFIRM[用户确认门]:::confirmed
+      COMPLETE[统一完成门]:::suggested
+      RETRY[中断/幂等/重试]:::suggested
+      RECON[状态调和]:::suggested
+    end
+
+    subgraph L5[5 工具与服务层]
+      CTXIO[上下文读写]:::inferred
+      PARSE[剧本/角色/场景/道具提取]:::inferred
+      PROMPT[提示词生成]:::confirmed
+      IMG[图片生成]:::confirmed
+      VID[视频生成]:::confirmed
+      AUD[音频/语音生成]:::unknown
+      COMPOSE[合成/预览/导出]:::inferred
+      STORE[媒资写入/读取]:::inferred
+      TASKS[异步任务服务]:::inferred
+      SAFE[安全检查]:::suggested
+      BILL[额度预估/冻结/结算]:::suggested
+      QA[质量/时长/风格/同步校验]:::suggested
+    end
+
+    subgraph L6[6 模型接入与路由层]
+      TEXT[文本模型能力]:::inferred
+      IMAGE[图片模型能力]:::inferred
+      SEED[Seedance 2.0<br/>Pro/Fast · 720p/480p]:::confirmed
+      AUDIO[音频/TTS/音色模型]:::unknown
+      REG[模型能力注册表]:::suggested
+      ROUTER[模型网关/路由/回退]:::suggested
+    end
+
+    subgraph L7[7 全局上下文与数据层]
+      UC[UserContext]:::inferred
+      PC[ProjectConfig]:::confirmed
+      SC[ScriptContext]:::confirmed
+      CC[CharacterContext]:::confirmed
+      SEC[SceneContext]:::confirmed
+      PRC[PropContext]:::confirmed
+      SBC[StoryboardContext]:::confirmed
+      ASC[AssetContext]:::inferred
+      WS[WorkflowState]:::confirmed
+      BC[BillingContext]:::unknown
+      EC[EvaluationContext]:::suggested
+      SPLIT[聊天/任务/画布/资产<br/>状态不一致]:::risk
+    end
+
+    subgraph L8[8 知识与公共资产层]
+      STYLE[3D言情风格]:::confirmed
+      SKB[故事动画剧本知识]:::confirmed
+      CKB[“觉醒”运镜知识]:::confirmed
+      TMPL[提示词模板]:::inferred
+      MK[模型能力知识]:::inferred
+      POL[安全/版权/计费规则]:::suggested
+      PRIVATE[用户私有资产域]:::suggested
+      PUBLIC[平台公共资产域]:::unknown
+    end
+
+    subgraph L9[9 基础设施与治理层]
+      AUTH[认证/租户权限]:::suggested
+      DB[结构化数据库/事件日志]:::suggested
+      OBJ[对象存储/CDN]:::suggested
+      QUEUE[队列/异步 Worker]:::suggested
+      GW[模型网关]:::suggested
+      OBS[日志/链路追踪/告警]:::suggested
+      EVAL[模型效果评测]:::suggested
+      PRIV[隐私/数据版本/隔离]:::suggested
+    end
+
+    U -->|输入/确认/修改| CHAT
+    U -->|选择| FORM
+    CHAT -->|展示| CANVAS
+    CANVAS -->|预览入口| PREVIEW
+    TASKUI -->|状态显示| U
+    BAL -->|余额显示| U
+    PUB -->|入口| PUBLISHAPP
+
+    CHAT -.->|调用/路由| MASTER
+    MASTER -.->|调用| AD
+    AD -.->|交接| WR
+    WR -.->|交接| CD
+    CD -.->|交接| SD
+    SD -.->|交接| PD
+    PD -->|明确邀请| ST
+    ST -->|确认请求| CONFIRM
+    CONFIRM -->|确认事件| WF
+    WF -.->|状态更新| TASKUI
+    WF -.->|任务分派| MASTER
+    RETRY ==>|建议控制| WF
+    COMPLETE ==>|完成判定| WF
+    RECON ==>|对账| SPLIT
+
+    WR -.->|调用| PARSE
+    CD -.->|调用| IMG
+    SD -.->|调用| IMG
+    PD -.->|调用| IMG
+    ST -->|调用| PROMPT
+    ST -->|调用| VID
+    VID -.->|模型请求| SEED
+    IMG -.->|模型请求| IMAGE
+    PARSE -.->|模型请求| TEXT
+    AUD -.->|模型请求| AUDIO
+    SAFE ==>|强制检查| ROUTER
+    BILL ==>|额度门| ROUTER
+    REG ==>|能力/限制| ROUTER
+    ROUTER ==>|统一调用| SEED
+    QA ==>|验证| COMPLETE
+
+    CTXIO -.->|读取/写入| PC
+    CTXIO -.->|读取/写入| SC
+    CTXIO -.->|读取/写入| CC
+    CTXIO -.->|读取/写入| SEC
+    CTXIO -.->|读取/写入| PRC
+    CTXIO -.->|读取/写入| SBC
+    CTXIO -.->|状态更新| WS
+    IMG -.->|资产写入| STORE
+    VID -.->|资产写入| STORE
+    STORE -.->|资产引用| ASC
+    ASC -.->|资产引用| CANVAS
+    ASC -.->|读取| ASSETAPP
+    WS -.->|读取| CHAT
+    WS -.->|读取| TASKUI
+    ASC -.->|读取| ASSETPANEL
+    WS -->|冲突证据| SPLIT
+    ASC -->|冲突证据| SPLIT
+
+    STYLE -->|风格知识| PROMPT
+    SKB -->|检索| WR
+    CKB -->|检索| ST
+    TMPL -.->|模板| PROMPT
+    MK -.->|能力| REG
+    POL ==>|策略| SAFE
+    UAS -.->|私有引用| PRIVATE
+    PRIVATE ==>|租户隔离| AUTH
+
+    WF ==>|持久化| DB
+    TASKS ==>|任务事件| QUEUE
+    STORE ==>|媒资| OBJ
+    ROUTER ==>|网关| GW
+    WF ==>|trace| OBS
+    QA ==>|评测结果| EVAL
+    AUTH ==>|授权| PRIV</pre></div>
+  <div class="qa" style="margin-top:14px">
+    <article><b>需求从哪里进入？</b>聊天输入框；艺术总监/Oii Agent 首次处理。</article><article><b>谁决定调用 Agent？</b>专业交接可见；主控编排实体合理推断，未确认实现。</article><article><b>Agent 从哪里拿输入？</b>聊天、项目配置、画布上游资产；稳定引用方式未知。</article><article><b>图片/视频由谁生成？</b>角色/场景/道具 Agent 触发图片能力；分镜师触发视频能力。</article><article><b>结果存哪里？</b>画布资产可见；对象存储/资产服务为推断。</article><article><b>失败后怎么办？</b>只确认依赖阻断和最终警告；系统性重试/中断建议补充。</article><article><b>余额不足在哪里拦截？</b>当前未知；建议工具/模型网关前由计费服务强制。</article><article><b>如何保证完成？</b>当前未保证；建议统一完成门读取资产、状态、质量、确认和计费。</article>
+  </div>
+</section>
+
+<section id="asis">
+  <h2>14. 当前架构 As-Is</h2>
+  <div class="table-wrap as-is"><table><thead><tr><th>能力</th><th>当前可见架构</th><th>证据</th><th>成熟度判断</th><th>当前问题</th></tr></thead><tbody>
+    <tr><td>交互工作台</td><td>聊天 + 画布 + 侧栏 + 任务 + 预览。</td><td>S01/S07/S09</td><td>核心体验已成形</td><td>不同视图状态口径不一。</td></tr>
+    <tr><td>多 Agent 链</td><td>艺术总监→编剧→角色→场景→道具→分镜。</td><td>S01–S06/S16/S17</td><td>阶段角色清晰</td><td>主控调度、重入与回退协议不透明。</td></tr>
+    <tr><td>用户确认门</td><td>剧本、角色、提示词、小样、批量视频均有满意/修改。</td><td>S02/S03/S06/S18</td><td>可控性较好</td><td>确认是否结构化写入未知。</td></tr>
+    <tr><td>资产生成</td><td>剧本、角色、场景、道具、分镜、视频逐步产生。</td><td>画布与卡片</td><td>端到端覆盖广</td><td>版本、lineage、稳定引用不可见。</td></tr>
+    <tr><td>依赖检查</td><td>场景多视图缺失可阻断并补偿。</td><td>S04</td><td>有局部依赖治理</td><td>检查发生较晚；全局依赖失效未知。</td></tr>
+    <tr><td>模型配置</td><td>Seedance 2.0、Pro/Fast、720p/480p。</td><td>S05</td><td>用户可控</td><td>能力/成本/时长/失败率不透明。</td></tr>
+    <tr><td>知识检索</td><td>剧本与镜头知识摘要。</td><td>S02/S17</td><td>专业知识增强</td><td>来源、版本、许可和命中记录未知。</td></tr>
+    <tr><td>任务/错误</td><td>生成中、当前无任务、依赖警告、素材不完整。</td><td>S04/S08/S18</td><td>有基础反馈</td><td>完成定义与状态同步不足。</td></tr>
+    <tr><td>计费</td><td>STAR 余额显示。</td><td>S01–S09</td><td>仅展示层可见</td><td>估价/冻结/扣费/退款未知。</td></tr>
+    <tr><td>最终成片</td><td>预览/剪辑/下载入口；音效/BGM不完整。</td><td>S07/S08</td><td>链路未闭环</td><td>无法确认完整成片实际产出。</td></tr>
+  </tbody></table></div>
+</section>
+
+<section id="tobe">
+  <h2>15. 建议架构 To-Be</h2>
+  <div class="table-wrap to-be"><table><thead><tr><th>建议组件</th><th>解决的问题</th><th>核心机制</th><th>落点</th><th>验收标准</th></tr></thead><tbody>
+    <tr><td>统一状态事实源</td><td>聊天/任务/画布/资产冲突。</td><td>事件序号、乐观锁、读模型订阅、reconciliation。</td><td>WorkflowState + 事件日志</td><td>四个界面同一 project_version/event_seq。</td></tr>
+    <tr><td>统一完成门</td><td>Agent 口头完成≠真正完成。</td><td>必需资产、状态写入、确认、质量、计费、交接同时校验。</td><td>编排层</td><td>任一条件失败不得 completed。</td></tr>
+    <tr><td>资产 DAG 与失效引擎</td><td>上游修改后下游可能继续引用旧版。</td><td>不可变 AssetVersion、lineage、stale、局部重算计划。</td><td>AssetContext/版本服务</td><td>修改角色自动列出受影响分镜/视频。</td></tr>
+    <tr><td>结果质量校验</td><td>缺少角色一致性、风格、时长、台词验证。</td><td>自动评测 + 规则校验 + 用户确认。</td><td>EvaluationContext</td><td>报告可追溯；失败不声称符合。</td></tr>
+    <tr><td>音画同步/时长门</td><td>音效/BGM不完整与最终预览不确定。</td><td>镜头时长、对白时长、音轨、BGM、总时长检查。</td><td>合成前工具</td><td>可预览/可导出状态分级清晰。</td></tr>
+    <tr><td>模型能力注册表</td><td>UI 与真实模型约束可能漂移。</td><td>版本化能力、价格、健康、限制、弃用时间。</td><td>模型路由层</td><td>UI 与调用共用同一能力源。</td></tr>
+    <tr><td>幂等任务与重试</td><td>重复生成/扣费/资产。</td><td>idempotency_key、attempt、去重、补偿。</td><td>ToolCall/Task</td><td>重复点击只产生一个有效账单/版本。</td></tr>
+    <tr><td>额度预估/冻结</td><td>生成前成本未知。</td><td>estimate→reserve→settle/release/refund。</td><td>BillingContext</td><td>余额不足在调用前阻断；失败自动释放。</td></tr>
+    <tr><td>中断协议</td><td>用户停止后后台可能继续。</td><td>cancel_requested、worker cancel、晚到结果隔离。</td><td>Workflow/Task</td><td>中断后无新调用；晚到资产不自动采用。</td></tr>
+    <tr><td>全链路追踪</td><td>难以解释错资产/错状态/错扣费。</td><td>trace_id 串联 UserAction→AgentRun→ToolCall→ModelInvocation→Asset→Billing。</td><td>Observability</td><td>可在单页复原一次生成全过程。</td></tr>
+    <tr><td>模型效果反馈</td><td>满意/修改无法驱动质量改进。</td><td>项目反馈、失败原因、模型/模板版本统计；全局使用需 opt-in。</td><td>Evaluation/Knowledge</td><td>能比较模型/模板效果且不泄露私有数据。</td></tr>
+    <tr><td>私有资产隔离</td><td>FaceID/音色/参考图高敏感。</td><td>tenant ACL、签名访问、最小权限、审计。</td><td>认证/资产/检索</td><td>跨租户访问自动拒绝并告警。</td></tr>
+  </tbody></table></div>
+</section>
+
+<section id="risks">
+  <h2>16. 关键风险</h2>
+  <div class="grid3">
+    <article class="risk"><span class="prio">P0</span><h3>状态事实源分裂</h3><p>聊天待确认、任务无任务、画布有资产、资产侧栏为空。可能导致错误交接、误删或误完成。</p></article>
+    <article class="risk"><span class="prio">P0</span><h3>口头完成替代真实完成</h3><p>“规划完成/已生成”可能早于状态、资产、音频或最终合成完成。</p></article>
+    <article class="risk"><span class="prio">P0</span><h3>资产成功但上下文未更新</h3><p>生成工具成功若写入失败，画布/侧栏/下游读取可能分叉。</p></article>
+    <article class="risk"><span class="prio">P0</span><h3>用户中断后继续执行</h3><p>长视频任务若无取消令牌，后台可能继续扣费并生成晚到资产。</p></article>
+    <article class="risk"><span class="prio">P0</span><h3>私有资产权限泄漏</h3><p>角色参考图、FaceID、音色属于高敏私有资产；隔离机制不可见。</p></article>
+    <article class="risk"><span class="prio">P1</span><h3>上游修改未使下游失效</h3><p>角色/场景改版后旧分镜和视频仍可能被当作当前结果。</p></article>
+    <article class="risk"><span class="prio">P1</span><h3>自动重试重复扣费</h3><p>无幂等和账本冻结证据；重复请求可能产生多资产/多账单。</p></article>
+    <article class="risk"><span class="prio">P1</span><h3>时长偏离原剧本</h3><p>影片长度值与镜头时长校验不可见，最终视频可能严重偏离目标。</p></article>
+    <article class="risk"><span class="prio">P1</span><h3>风格一致性缺失</h3><p>3D言情选择是否贯穿角色/场景/道具/视频与校验不可确认。</p></article>
+    <article class="risk"><span class="prio">P1</span><h3>台词与音画同步缺失</h3><p>音效/BGM未完整，未见台词时长与嘴型/画面同步验证。</p></article>
+    <article class="risk"><span class="prio">P2</span><h3>安全误判/解释不足</h3><p>未见安全实例；缺少规则版本和申诉可能导致无法解释拦截。</p></article>
+    <article class="risk"><span class="prio">P2</span><h3>知识与模型能力过期</h3><p>知识/模型限制若无版本更新，会让 Prompt、UI 与实际能力漂移。</p></article>
+  </div>
+</section>
+
+<section id="trace">
+  <h2>17. 架构组件—证据追溯表</h2>
+  <div class="table-wrap"><table><thead><tr><th>架构组件</th><th>为什么需要</th><th>页面/官方证据</th><th>分类</th><th>置信度</th></tr></thead><tbody>
+    <tr><td>聊天/画布工作台</td><td>核心交互与资产可视化。</td><td>S01/S07/S10</td><td><span class="grade confirmed">已确认</span></td><td>高</td></tr>
+    <tr><td>专业 Agent 链</td><td>分工完成剧本到视频。</td><td>S01–S06/S16/S17</td><td><span class="grade confirmed">已确认</span></td><td>高</td></tr>
+    <tr><td>主控 Agent/编排器</td><td>需要决定阶段触发与路由。</td><td>Oii Agent 容器、画布链路、明确邀请分镜师。</td><td><span class="grade inferred">合理推断</span></td><td>中</td></tr>
+    <tr><td>用户确认门</td><td>每阶段满意/修改分支。</td><td>S02/S03/S06/S17/S18</td><td><span class="grade confirmed">已确认</span></td><td>高</td></tr>
+    <tr><td>异步任务服务</td><td>视频生成中、3视频批量、任务面板。</td><td>S06/S18</td><td><span class="grade inferred">合理推断</span></td><td>高</td></tr>
+    <tr><td>项目上下文</td><td>后续 Agent 使用上游剧本/角色/场景/道具。</td><td>画布连线、S16/S17就绪摘要。</td><td><span class="grade inferred">合理推断</span></td><td>高</td></tr>
+    <tr><td>资产服务</td><td>保存/预览/下载图片与视频。</td><td>多类卡片、播放/下载入口。</td><td><span class="grade inferred">合理推断</span></td><td>高</td></tr>
+    <tr><td>对象存储/CDN</td><td>大规模媒资传输与播放。</td><td>无后台证据。</td><td><span class="grade suggested">建议设计</span></td><td>设计必要</td></tr>
+    <tr><td>视频模型 Seedance 2.0</td><td>分镜视频生成。</td><td>S05配置 + S06/S18结果。</td><td><span class="grade confirmed">已确认</span></td><td>高</td></tr>
+    <tr><td>模型能力注册表</td><td>UI 显示模型条件/分辨率。</td><td>自定义音色条件。</td><td><span class="grade inferred">推断/建议</span></td><td>中</td></tr>
+    <tr><td>知识检索</td><td>剧本灵感和运镜知识。</td><td>S02/S17公开思考摘要。</td><td><span class="grade confirmed">能力已确认</span></td><td>高</td></tr>
+    <tr><td>统一状态事实源</td><td>解决聊天/任务/画布/资产冲突。</td><td>S07/S09/S18冲突。</td><td><span class="grade suggested">建议设计</span></td><td>高必要性</td></tr>
+    <tr><td>资产 DAG/失效引擎</td><td>支撑画布引用、修改与局部重算。</td><td>画布连线；修改入口。</td><td><span class="grade suggested">建议设计</span></td><td>高必要性</td></tr>
+    <tr><td>质量/完成门</td><td>避免4视频存在但音效/BGM不完整。</td><td>S08警告。</td><td><span class="grade suggested">建议设计</span></td><td>高必要性</td></tr>
+    <tr><td>计费账本/额度冻结</td><td>生成成本与重复扣费治理。</td><td>仅余额显示。</td><td><span class="grade suggested">建议设计</span></td><td>高必要性</td></tr>
+    <tr><td>安全策略服务</td><td>多模态生成合规。</td><td>无页面实例。</td><td><span class="grade suggested">建议设计</span></td><td>设计必要</td></tr>
+    <tr><td>全链路追踪</td><td>调和状态、资产、模型与账单。</td><td>当前冲突需要可诊断性。</td><td><span class="grade suggested">建议设计</span></td><td>高必要性</td></tr>
+    <tr><td>版本/历史</td><td>修改与回退、防覆盖。</td><td>资产页空、无历史。</td><td><span class="grade suggested">建议设计</span></td><td>高必要性</td></tr>
+    <tr><td>租户权限/私有资产隔离</td><td>保护参考图、FaceID、音色。</td><td>资产入口存在；权限未知。</td><td><span class="grade suggested">建议设计</span></td><td>设计必要</td></tr>
+  </tbody></table></div>
+</section>
+
+<section id="unknowns">
+  <h2>18. 仍然无法确认的问题</h2>
+  <div class="grid3">
+    <div class="panel"><h3>主控与编排</h3><p>Oii Agent 是独立主控、群聊容器还是 UI 名称；专业 Agent 如何调度、恢复和重入。</p></div>
+    <div class="panel"><h3>后台技术栈</h3><p>前端框架、服务语言、数据库、对象存储、CDN、队列、工作流引擎和云服务。</p></div>
+    <div class="panel"><h3>模型目录</h3><p>文本/图片/音频模型名，Seedance之外是否有路由、降级、回退、健康度与价格。</p></div>
+    <div class="panel"><h3>资产引用</h3><p>角色/场景/道具是否通过稳定 ID、URI、Face ID、embedding、名称代称或提示词复制关联分镜。</p></div>
+    <div class="panel"><h3>历史与失效</h3><p>是否有 AssetVersion、项目历史、局部回退；上游修改如何使下游失效。</p></div>
+    <div class="panel"><h3>任务语义</h3><p>“当前无任务”是否只代表没有后台作业，还是阶段完成；聊天满意门如何同步。</p></div>
+    <div class="panel"><h3>计费</h3><p>STAR 与模型调用的换算、估价、冻结、扣费、退款、失败/重试费用和会员权益。</p></div>
+    <div class="panel"><h3>安全与版权</h3><p>输入/输出审核、规则版本、真人/肖像/音色许可、误判恢复和审计。</p></div>
+    <div class="panel"><h3>音频链</h3><p>音效、BGM、台词、音色、TTS、视频原生音频的生产者与完成条件。</p></div>
+    <div class="panel"><h3>发布/剪辑</h3><p>剪辑器是否内置、最终合成与导出格式、发布渠道、权限和可恢复性。</p></div>
+    <div class="panel"><h3>用户数据隔离</h3><p>私有资产的租户边界、跨项目复用授权、下载链接权限、数据保留与删除。</p></div>
+    <div class="panel"><h3>质量与效果</h3><p>角色一致性、风格、时长、台词准确、音画同步、用户反馈和模型评测是否存在。</p></div>
+  </div>
+</section>
+
+<footer>报告完成于只读页面证据与前序材料。未触发生成、重生成、发布、删除、购买、充值或资产覆盖；未读取 Cookie、Token、密码、鉴权头或个人敏感信息。</footer>
+</main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+(()=>{
+  document.querySelectorAll('[data-copy]').forEach(button=>button.addEventListener('click',async()=>{
+    const node=document.getElementById(button.dataset.copy);
+    const source=node?.dataset?.source||node?.textContent||'';
+    try{await navigator.clipboard.writeText(source.trim());button.textContent='已复制';}
+    catch{button.textContent='请手动复制';}
+    setTimeout(()=>button.textContent='复制 Mermaid',1500);
+  }));
+  if(window.mermaid){
+    document.querySelectorAll('.mermaid').forEach(node=>node.dataset.source=node.textContent);
+    mermaid.initialize({startOnLoad:true,securityLevel:'strict',theme:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'default',flowchart:{htmlLabels:true,curve:'basis'},er:{useMaxWidth:true},sequence:{useMaxWidth:true,showSequenceNumbers:true}});
+  }
+})();
+</script>
+</body>
+</html>
